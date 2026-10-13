@@ -1,1 +1,42 @@
 @import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme {
+  /* Brand: deep teal + fresh green */
+  --color-brand-950: #083d37;
+  --color-brand-900: #0a4f47;
+  --color-brand-800: #0c5f55;
+  --color-brand-700: #0f6e62;
+  --color-brand-500: #2fae74;
+  --color-brand-400: #4cc58c;
+  --color-brand-100: #d9efe6;
+  --color-brand-50: #ecf6f2;
+
+  /* Surfaces */
+  --color-canvas: #e4ebec; /* page backdrop */
+  --color-shell: #f4f7f7; /* app frame + sidebar */
+  --color-panel: #ecf1f1; /* main content area */
+  --color-card: #f8fafa; /* cards */
+  --color-line: #e2e8e8;
+
+  /* Text */
+  --color-ink: #1b2727;
+  --color-muted: #7d8b8b;
+
+  /* Status */
+  --color-up: #2a9d63;
+  --color-down: #d23f3f;
+  --color-save: #3a86a8;
+}
+
+/* Diagonal hatch used for non-selected chart bars */
+.hatch {
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgb(255 255 255 / 0.55) 0 2px,
+    transparent 2px 7px
+  );
+}
