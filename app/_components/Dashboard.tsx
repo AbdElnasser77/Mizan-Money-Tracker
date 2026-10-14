@@ -95,7 +95,7 @@ export default function Dashboard() {
           }
         />
         <StatCard label="Income" icon={ICONS.incomes} value={income} prev={sum(prevTx, "income")} goodWhenUp />
-        <StatCard label="Expenses" icon={ICONS.expenses} value={expenses} prev={sum(prevTx, "expense")} />
+        <StatCard label="Expenses" valueClass="text-down" icon={ICONS.expenses} value={expenses} prev={sum(prevTx, "expense")} />
       </div>
 
       <SpendingFlow month={month} transactions={transactions} budgets={budgets} onSelect={selectMonth} />
@@ -273,7 +273,7 @@ function SpendingFlow({
         </div>
       </div>
 
-      <div className="mt-6 overflow-x-auto">
+      <div className="overflow-x-auto pt-16">
         <div className="flex min-w-[640px] gap-3">
           {/* Y axis */}
           <div className="flex h-64 flex-col justify-between pb-0 text-right text-xs text-muted">
@@ -308,7 +308,7 @@ function SpendingFlow({
                     onClick={() => onSelect(d.key)}
                     onMouseEnter={() => setHovered(d.key)}
                     onMouseLeave={() => setHovered(null)}
-                    className="relative flex h-full flex-1 items-end justify-center px-1.5"
+                    className="relative flex h-full flex-1 items-end justify-center rounded-lg px-1.5 outline-none focus-visible:bg-brand-50"
                     aria-label={`${d.label}: budget ${formatMoney(d.budget)}, spent ${formatMoney(d.spent)}`}
                   >
                     <span
@@ -325,10 +325,10 @@ function SpendingFlow({
                     )}
                     {showTip && (
                       <span
-                        className={`pointer-events-none absolute z-10 block w-44 rounded-xl bg-white p-3 text-left shadow-[0_8px_24px_-8px_rgb(15_60_55/0.25)] ring-1 ring-black/5 ${
+                        className={`pointer-events-none absolute z-30 block w-44 rounded-xl bg-white p-3 text-left shadow-[0_8px_24px_-8px_rgb(15_60_55/0.25)] ring-1 ring-black/5 ${
                           i > 8 ? "right-1/2" : i < 2 ? "left-1/2" : "left-1/2 -translate-x-1/2"
                         }`}
-                        style={{ bottom: `calc(${Math.min(tallest, 70)}% + 10px)` }}
+                        style={{ bottom: `calc(${Math.min(tallest, 60)}% + 10px)` }}
                       >
                         <span className="block text-sm font-medium">{monthLabel(d.key)}</span>
                         <span className="mt-2 block space-y-1 text-xs">

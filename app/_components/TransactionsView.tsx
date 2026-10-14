@@ -6,6 +6,7 @@ import {
   CURRENCY,
   deleteTransaction,
   formatMoney,
+  updateTransaction,
   useStore,
   useToday,
   type Transaction,
@@ -40,7 +41,7 @@ export default function TransactionsView() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard hero label="Balance" icon={ICONS.wallet} value={now.balance} prev={before.balance} goodWhenUp footer="Available cash" />
-        <StatCard label="Expenses" icon={ICONS.expenses} value={expenses} prev={prevExpenses} footer={monthLabel(month)} />
+        <StatCard label="Expenses" valueClass="text-down" icon={ICONS.expenses} value={expenses} prev={prevExpenses} footer={monthLabel(month)} />
         <StatCard
           label="Net Worth"
           icon={ICONS.networth}
@@ -235,7 +236,7 @@ function CategoryMenu({ type, value, onChange }: { type: TransactionType; value:
   );
 }
 
-function CategoryBadge({ category, size = "h-7 w-7" }: { category: string; size?: string }) {
+export function CategoryBadge({ category, size = "h-7 w-7" }: { category: string; size?: string }) {
   return (
     <span className={`grid ${size} shrink-0 place-items-center rounded-lg text-white`} style={{ background: CATEGORY_COLORS[category] ?? CATEGORY_COLORS.Other }}>
       <Icon d={CATEGORY_ICONS[category] ?? CATEGORY_ICONS.Other} className="h-4 w-4" />
@@ -263,6 +264,7 @@ export function TransactionsTable({
   actions?: React.ReactNode;
 }) {
   const rows = [...transactions].sort((a, b) => b.date.localeCompare(a.date));
+  const [editing, setEditing] = useState<string | null>(null);
 
   return (
     <Card>
@@ -280,7 +282,7 @@ export function TransactionsTable({
               <th className="px-4 py-3 font-normal">Category</th>
               <th className="px-4 py-3 font-normal">Type</th>
               <th className="px-4 py-3 text-right font-normal">Amount</th>
-              <th className="w-12 px-2 py-3" />
+              <th className="w-24 px-2 py-3" />
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -293,6 +295,7 @@ export function TransactionsTable({
             ) : (
               rows.map((t) => {
                 const meta = TYPE_META[t.type];
+                if (editing === t.id) return <EditRow key={t.id} t={t} onDone={() => setEditing(null)} />;
                 return (
                   <tr key={t.id} className="group text-[15px] hover:bg-white">
                     <td className="whitespace-nowrap px-4 py-3 text-sm text-muted">{dayLabel(t.date, today)}</td>
@@ -309,18 +312,27 @@ export function TransactionsTable({
                         {meta.label}
                       </span>
                     </td>
-                    <td className={`whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums ${t.type === "expense" ? "text-ink" : meta.text}`}>
+                    <td className={`whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums ${meta.text}`}>
                       {meta.sign}
                       {formatMoney(t.amount)}
                     </td>
-                    <td className="px-2 py-3 text-right">
-                      <button
-                        onClick={() => deleteTransaction(t.id)}
-                        className="rounded-lg p-1.5 text-muted hover:bg-panel hover:text-down md:opacity-0 md:group-hover:opacity-100"
-                        aria-label="Delete transaction"
-                      >
-                        <Icon d={ICONS.trash} className="h-4 w-4" />
-                      </button>
+                    <td className="whitespace-nowrap px-2 py-3 text-right">
+                      <span className="inline-flex gap-0.5 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
+                        <button
+                          onClick={() => setEditing(t.id)}
+                          className="rounded-lg p-1.5 text-muted hover:bg-panel hover:text-brand-800"
+                          aria-label="Edit transaction"
+                        >
+                          <Icon d={ICONS.edit} className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteTransaction(t.id)}
+                          className="rounded-lg p-1.5 text-muted hover:bg-panel hover:text-down"
+                          aria-label="Delete transaction"
+                        >
+                          <Icon d={ICONS.trash} className="h-4 w-4" />
+                        </button>
+                      </span>
                     </td>
                   </tr>
                 );
@@ -330,5 +342,82 @@ export function TransactionsTable({
         </table>
       </div>
     </Card>
+  );
+}
+
+function EditRow({ t, onDone }: { t: Transaction; onDone: () => void }) {
+  const [type, setType] = useState(t.type);
+  const [date, setDate] = useState(t.date);
+  const [note, setNote] = useState(t.note);
+  const [category, setCategory] = useState(t.category);
+  const [amount, setAmount] = useState(String(t.amount));
+  const valid = Number(amount) > 0 && date;
+  const field = "w-full rounded-lg border border-line bg-white px-2 py-1.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100";
+
+  const save = () => {
+    if (!valid) return;
+    updateTransaction(t.id, { type, date, note: note.trim(), category, amount: Number(amount) });
+    onDone();
+  };
+
+  return (
+    <tr
+      className="bg-brand-50/60"
+      onKeyDown={(e) => {
+        if (e.key === "Enter") save();
+        if (e.key === "Escape") onDone();
+      }}
+    >
+      <td className="px-3 py-2">
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={`${field} w-36`} aria-label="Date" />
+      </td>
+      <td className="px-3 py-2">
+        <input autoFocus value={note} onChange={(e) => setNote(e.target.value)} placeholder="Note" className={field} aria-label="Note" />
+      </td>
+      <td className="px-3 py-2">
+        <select value={category} onChange={(e) => setCategory(e.target.value)} className={field} aria-label="Category">
+          {[...new Set([...CATEGORIES[type], category])].map((c) => (
+            <option key={c}>{c}</option>
+          ))}
+        </select>
+      </td>
+      <td className="px-3 py-2">
+        <select
+          value={type}
+          onChange={(e) => {
+            const next = e.target.value as TransactionType;
+            setType(next);
+            if (!CATEGORIES[next].includes(category)) setCategory(CATEGORIES[next][0]);
+          }}
+          className={field}
+          aria-label="Type"
+        >
+          {TYPES.map((x) => (
+            <option key={x} value={x}>
+              {TYPE_META[x].label}
+            </option>
+          ))}
+        </select>
+      </td>
+      <td className="px-3 py-2">
+        <input
+          type="number"
+          min="0.01"
+          step="0.01"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          className={`${field} w-28 text-right tabular-nums`}
+          aria-label="Amount"
+        />
+      </td>
+      <td className="whitespace-nowrap px-2 py-2 text-right">
+        <button onClick={save} disabled={!valid} className="rounded-lg p-1.5 text-brand-800 hover:bg-white disabled:opacity-40" aria-label="Save">
+          <Icon d="M5 12l5 5L20 7" className="h-4 w-4" />
+        </button>
+        <button onClick={onDone} className="rounded-lg p-1.5 text-muted hover:bg-white" aria-label="Cancel">
+          <Icon d="M6 6l12 12M18 6L6 18" className="h-4 w-4" />
+        </button>
+      </td>
+    </tr>
   );
 }

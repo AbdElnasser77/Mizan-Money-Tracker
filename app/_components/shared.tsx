@@ -60,6 +60,7 @@ export const ICONS = {
   incomes: "M4 7h16v12H4zM8 7V5h8v2M12 11v5M9.5 13.5L12 11l2.5 2.5",
   expenses: "M4 7h16v12H4zM8 7V5h8v2M12 11v5M9.5 13.5L12 16l2.5-2.5",
   trash: "M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3",
+  edit: "M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4",
   networth: "M3 21h18M5 21V10M9.5 21V10M14.5 21V10M19 21V10M12 3l9 5H3z",
 };
 
@@ -102,6 +103,7 @@ export function StatCard({
   goodWhenUp = false,
   hero = false,
   footer,
+  valueClass,
 }: {
   label: string;
   icon: string;
@@ -110,6 +112,7 @@ export function StatCard({
   goodWhenUp?: boolean;
   hero?: boolean;
   footer?: React.ReactNode;
+  valueClass?: string;
 }) {
   const diff = value - prev;
   const pct = prev !== 0 ? (diff / Math.abs(prev)) * 100 : null;
@@ -129,7 +132,7 @@ export function StatCard({
         {label}
       </h2>
       <div className="relative mt-4 flex flex-wrap items-center gap-2">
-        <p className={`text-[28px] leading-none tracking-tight tabular-nums ${value < 0 && !hero ? "text-down" : ""}`}>{formatMoney(value)}</p>
+        <p className={`text-[28px] leading-none tracking-tight tabular-nums ${valueClass ?? (value < 0 && !hero ? "text-down" : "")}`}>{formatMoney(value)}</p>
         {pct !== null && diff !== 0 && (
           <span className={`flex items-center text-xs font-medium ${tone}`}>
             <Icon d={up ? "M12 19V5M6 11l6-6 6 6" : "M12 5v14M6 13l6 6 6-6"} className="h-3.5 w-3.5" />
